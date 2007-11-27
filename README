@@ -1,0 +1,36 @@
+= HasManyExclusiveConditions
+
+Author::    Jason L Perry (http://ambethia.com, http://paint.itred.org)
+Copyright:: Copyright (c) 2007 Jason L Perry
+License::   MIT
+URI::       http://subvert.itred.org/has_many_exclusive_conditions
+
+== Description
+
+This plugin adds an :exclusive_conditions option to ActiveRecord's has_many
+association. This let's you express ideas that are otherwise impossible with
+the default rails generated sql.
+
+=== Caveat Emptor!
+
+You need to becareful with how rails interpolates your string to create
+the generated SQL. If you plan on using instance variables or methods in the
+fragment, be sure to use an UNinterpolated ruby string (ie, %q or single
+quotes). Also, be aware of boolean values and other things that are not always
+database agnostic. ActiveRecord methods like +quote_value+ can be your friend.
+
+== Example
+
+In this example, we want to create an association for a User's record, or if
+that user is an admin, all records will be included.
+
+  User.has_many :accessible_records, :exclusive_conditions => %q(records.user_id = #{id} OR #{is_admin})
+
+Will generate SQL like:
+
+  SELECT * FROM things WHERE (`things`.user_id = 1 OR true)
+  
+Instead of the SQL from regular +:condition+ option:
+
+  SELECT * FROM things WHERE (`things`.user_id = 1) AND (`things`.user_id = 1 OR true)
+
